@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Recomendações de restaurantes próximos</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <!-- Inclua o arquivo CSS do Tailwind -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.0.2/tailwind.min.css"
+    />
+    <!-- Inclua o arquivo CSS do Font Awesome -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.2/css/all.min.css"
+    />
+  </head>
+  <script>
+    var send = false;
+
+    function set_check_circle() {
+      if (send == false) {
+        send = true;
+        document.getElementById("location").style.display = "inline";
+        getLocation();
+      } else {
+        document.getElementById("location").style.display = "none";
+        send = false;
+      }
+    }
+
+    function getLocation() {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(sendPosition);
+      } else {
+        alert("Geolocalização não suportada pelo seu navegador");
+      }
+    }
+
+    var latitude = 0;
+    var longitude = 0;
+
+    function sendPosition(position) {
+      latitude = position.coords.latitude;
+      longitude = position.coords.longitude;
+      getLatLong();
+    }
+
+    function submit_form() {
+      if (send == true) {
+        alert(
+          "TODO: (send) Latitude: " + latitude + " Longitude: " + longitude
+        );
+      }
+
+      document.getElementById("form").submit();
+    }
+
+    function getLatLong() {
+      var end_lat_long_strings = document.getElementsByClassName("endereco");
+      var distancia_strings = document.getElementsByClassName("distancia");
+
+      if (send == false) {
+        for (var i = 0; i < end_lat_long_strings.length; i++) {
+          distancia_strings[i].innerHTML = " - Não disponível";
+        }
+        return;
+      }
+      // Coordenadas do usuário
+      var user_lat = latitude;
+      var user_long = longitude; // exemplo
+
+      // Cast para float
+      user_lat = parseFloat(user_lat);
+      user_long = parseFloat(user_long);
+
+      console.log(" Lat: " + user_lat + " Long: " + user_long);
+
+      // Raio da Terra em km
+      var R = 6371;
+
+      for (var i = 0; i < end_lat_long_strings.length; i++) {
+        var end_lat_long = end_lat_long_strings[i].innerHTML;
+        var end_lat_long_array = end_lat_long.split(",");
+
+        var end_lat = end_lat_long_array[0];
+        var end_long = end_lat_long_array[1];
+
+        // Cast para float
+        end_lat = parseFloat(end_lat);
+        end_long = parseFloat(end_long);
+
+        // Diferença de latitude e longitude
+        var dLat = (end_lat - user_lat) * (Math.PI / 180);
+        var dLon = (end_long - user_long) * (Math.PI / 180);
+
+        // Converte para radianos
+        var lat1 = user_lat * (Math.PI / 180);
+        var lat2 = end_lat * (Math.PI / 180);
+
+        // Fórmula de Haversine
+        var a =
+          Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+          Math.sin(dLon / 2) *
+            Math.sin(dLon / 2) *
+            Math.cos(lat1) *
+            Math.cos(lat2);
+        var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        var d = R * c;
+
+        // Distância em km
+        distancia_strings[i].innerHTML = d.toFixed(2) + " km";
+      }
+    }
+  </script>
+
+  <body class="bg-gray-100">
+    <nav class="bg-gray-800 py-3">
+      <div class="container mx-auto flex justify-between items-center px-4">
+        <!-- Logo -->
+        <a class="text-xl text-white font-bold" href="#"
+          >Recomendações de restaurantes próximos</a
+        >
+
+        <!-- Botão para menu responsivo -->
+        <button
+          class="block sm:hidden text-white hover:text-gray-200 focus:text-gray-200 focus:outline-none"
+        >
+          <i class="fas fa-bars"></i>
+        </button>
+
+        <!-- Menu -->
+        <div class="hidden sm:block sm:flex-1">
+          <ul class="flex justify-end">
+            <li>
+              <a class="text-white hover:text-gray-200 px-3 py-2" href="#"
+                >Início</a
+              >
+            </li>
+            <li>
+              <a class="text-white hover:text-gray-200 px-3 py-2" href="#"
+                >Restaurantes</a
+              >
+            </li>
+            <li>
+              <a class="text-white hover:text-gray-200 px-3 py-2" href="#"
+                >Sobre</a
+              >
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+
+    <header class="bg-gray-800 text-white py-20">
+      <div class="container mx-auto px-4">
+        <h1 class="text-4xl font-bold mb-4">
+          Encontre os melhores restaurantes próximos de você
+        </h1>
+        <p class="text-lg mb-8">
+          Digite suas preferências ou utilize sua localização para encontrar os
+          melhores restaurantes próximos de você.
+        </p>
+        <form class="mb-8" action="/" method="POST" id="form">
+          <div class="flex items-center">
+            <label class="sr-only" for="culinaria"> Culinária desejada </label>
+            <input
+              class="rounded-l-lg px-4 py-2 w-full border-2 border-r-0 border-gray-300 focus:outline-none focus:border-gray-500 text-gray-700"
+              type="text"
+              id="culinaria"
+              placeholder="
+              Digite a culinária desejada (ex: chinesa, italiana, etc.)
+              "
+              name="quantidade"
+            />
+            <button
+              class="bg-indigo-500 text-white font-bold py-2 px-4 rounded-r-lg hover:bg-indigo-700 focus:outline-none focus:bg-indigo-700"
+              type="button"
+              onclick="submit_form()"
+            >
+              Buscar
+            </button>
+          </div>
+        </form>
+        <p class="text-lg mb-8">Ou</p>
+        <button
+          class="bg-white text-indigo-500 font-bold py-2 px-4 rounded-lg border border-indigo-500 hover:bg-indigo-500 hover:text-white focus:outline-none focus:bg-indigo-500 focus:text-white"
+          onclick="set_check_circle()"
+        >
+          <i class="fas fa-location-arrow mr-2"></i>Utilizar minha localização
+        </button>
+        <span
+          class="text-sm text-green-500"
+          id="location"
+          style="display: none"
+        >
+          Utilizando sua localização para melhorar nossos resultados.
+        </span>
+      </div>
+    </header>
+
+    <main class="container mx-auto px-4 py-8">
+      <h2 class="text-2xl font-bold mb-4">Os melhores restaurantes pra você</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        {% for restaurante in restaurantes %}
+        <div class="bg-white rounded-lg shadow-md overflow-hidden">
+          <img
+            class="w-full h-48 object-cover"
+            src="/{{restaurante['Imagem'] }}"
+            alt="{{ restaurante['Nome'] }}"
+          />
+          <div class="p-4">
+            <h3 class="text-lg font-bold mb-2">{{ restaurante['Nome'] }}</h3>
+            <p class="text-gray-700 text-md mb-4 text-justify">
+              {{ restaurante['Descrição'] }}
+            </p>
+            <p class="text-gray-700 text-sm mb-4">
+              <i class="fas fa-map-marker-alt mr-2"></i>
+              {{ restaurante['Endereço'] }}
+              <span class="endereco" style="display: none">
+                {{ restaurante['Latitude'] }},{{ restaurante['Longitude'] }}
+              </span>
+              <span class="distancia"></span>
+            </p>
+            <a
+              href="#"
+              class="bg-indigo-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-indigo-700 focus:outline-none focus:bg-indigo-700"
+              >Ver detalhes</a
+            >
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </main>
+
+    <footer class="bg-gray-800 text-white py-4">
+      <div class="container mx-auto px-4">
+        <p class="text-sm text-center">
+          &copy; 2023 Recomendações de restaurantes próximos. Todos os direitos
+          reservados.
+        </p>
+      </div>
+    </footer>
+
+    <!-- Inclua o arquivo JS do Font Awesome -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.2/js/all.min.js"></script>
+    <script>
+      getLatLong();
+    </script>
+  </body>
+</html>
